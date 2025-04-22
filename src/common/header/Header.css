@@ -1,0 +1,46 @@
+.headerContainer {
+  background-color: purple;
+  height: 70px;
+  padding: 11px;
+  display: flex;
+  /* Use flexbox for centering content */
+  align-items: center;
+  /* Vertically center the content */
+  justify-content: space-between;
+}
+
+.doctorLogo {
+  height: 35px;
+  background-color: #ff7f7f;
+}
+
+.headerName {
+  color: white;
+}
+
+.leftContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px
+}
+
+.loginModalHeader {
+  background-color: purple;
+  height: 60px;
+  color: white;
+  font-weight: 500;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  justify-content: space-between;
+}
+
+.closeIcon {
+  color: white;
+}
+
+.loginBtn {
+  margin-right: 24px !important;
+}
