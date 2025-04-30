@@ -24,8 +24,7 @@ const Controller = () => {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="light"
-          // transition={Bounce}
+          theme="colored"
         />
       </div>
     </Router>

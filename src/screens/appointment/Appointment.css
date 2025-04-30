@@ -1,0 +1,75 @@
+.appointmentHeaderText {
+    display: flex;
+    justify-content: center;
+}
+
+.appointmentsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+    align-items: center;
+    padding: 24px;
+}
+
+.appointmentCard {
+    height: auto;
+    width: 100%;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btnContainer {
+    margin-top: 20px;
+    gap: 20px;
+    width: 100%;
+}
+
+.appointmentBtn {
+    flex: 1;
+}
+
+.modalText {
+    display: flex;
+    align-items: center;
+    background-color: purple;
+    color: ghostwhite;
+    height: 38px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    padding: 16px;
+}
+
+.modalBody {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40%;
+    box-shadow: 2px 2px 2px 1px rgb(0 0 0 / 20%);
+    border-radius: 5px;
+    background-color: #f5f5f5;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 40%;
+    padding: 16px;
+}
+
+.ratingText {
+    display: flex;
+    align-items: center;
+}
+
+.bookAppointmentForm {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    width: 40%;
+    gap: 20px;
+}

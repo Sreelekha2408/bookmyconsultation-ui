@@ -1,7 +1,10 @@
+import { GET, POST } from "../common/constants";
+import { url } from "./apiConfig";
+
 export const postLoginRequest = (url, data) => {
   const credentials = btoa(`${data.email}:${data.password}`);
   return fetch(url, {
-    method: "POST",
+    method: POST,
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
@@ -12,7 +15,7 @@ export const postLoginRequest = (url, data) => {
 
 export const postRequest = (url, data) => {
   return fetch(url, {
-    method: "POST",
+    method: POST,
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
@@ -23,7 +26,7 @@ export const postRequest = (url, data) => {
 
 export const getRequest = (url) => {
   return fetch(url, {
-    method: "GET",
+    method: GET,
     headers: {
       Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`,
     },
@@ -32,7 +35,7 @@ export const getRequest = (url) => {
 
 export const registerUser = (url, data) => {
   return fetch(url, {
-    method: "POST",
+    method: POST,
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
@@ -41,26 +44,21 @@ export const registerUser = (url, data) => {
 };
 
 export const getSpecialities = async () => {
-  const response = await getRequest("http://localhost:8080/doctors/speciality");
+  const response = await getRequest(url.specialities);
   if (response.ok) {
     return await response.json();
   }
 };
 
 export const getDoctorBySpeciality = async (val) => {
-  const response = await getRequest(
-    `http://localhost:8080/doctors?speciality=${val}`
-  );
+  const response = await getRequest(`${url.doctorBySpeciality}${val}`);
   if (response.ok) {
     return await response.json();
   }
 };
 
 export const bookAnAppointment = async (data) => {
-  const response = await postRequest(
-    "http://localhost:8080/appointments",
-    data
-  );
+  const response = await postRequest(url.bookAppointment, data);
   if (response.ok) {
     return await response.text();
   }

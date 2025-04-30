@@ -15,17 +15,22 @@ import {
 import { Fragment, useEffect, useState } from "react";
 import { bookAnAppointment, getRequest } from "../../util/fetch";
 import moment from "moment";
-import { toast } from "react-toastify";
+import { url } from "../../util/apiConfig";
+import { EMPTY, ERROR, SUCCESS, YYYY_MM_DD } from "../../common/constants";
+import { showNotification } from "../../common/notification";
+import "../appointment/Appointment.css";
+import { useLogin } from "../login/useLogin";
 
 export default function BookAppointment({ doctor, setModal }) {
   const { firstName, lastName, id } = doctor;
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [timeSlot, setTimeSlot] = useState("");
+  const [timeSlot, setTimeSlot] = useState(EMPTY);
   const [allSlots, setAllSlots] = useState([]);
   const [formValidation, setFormValidation] = useState(false);
-  const [medicalHistory, setMedicalHistory] = useState("");
-  const [symptoms, setSymptoms] = useState("");
-
+  const [medicalHistory, setMedicalHistory] = useState(EMPTY);
+  const [symptoms, setSymptoms] = useState(EMPTY);
+  const [showLoginError, setShowLoginError] = useState(false);
+  const isLoggedIn = useLogin();
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -36,13 +41,17 @@ export default function BookAppointment({ doctor, setModal }) {
   };
   useEffect(() => {
     async function getTimeSlots() {
-      const date = moment(selectedDate).format("YYYY-MM-DD");
-      const response = await getRequest(
-        `http://localhost:8080/doctors/${id}/timeSlots?date=${date}`
-      );
-      if (response.ok) {
-        const { timeSlot } = await response.json();
-        setAllSlots(timeSlot);
+      const date = moment(selectedDate).format(YYYY_MM_DD);
+      try {
+        const response = await getRequest(
+          `${url.timeSlots}/${id}/timeSlots?date=${date}`
+        );
+        if (response.ok) {
+          const { timeSlot } = await response.json();
+          setAllSlots(timeSlot);
+        }
+      } catch (e) {
+        showNotification(ERROR, "Something went wrong, please try again later");
       }
     }
     if (selectedDate) {
@@ -56,53 +65,46 @@ export default function BookAppointment({ doctor, setModal }) {
       setFormValidation(true);
       return;
     }
-    const userDetails = JSON.parse(localStorage.getItem("userDetails"));
-    const {
-      id: userId,
-      emailAddress,
-      firstName: userFirstName,
-      lastName: userLastName,
-    } = userDetails;
-    const payload = {
-      doctorId: id,
-      doctorName: `${firstName} ${lastName}`,
-      userId: userId,
-      userName: `${userFirstName} ${userLastName}`,
-      userEmailId: emailAddress,
-      timeSlot: timeSlot,
-      appointmentDate: moment(selectedDate).format("YYYY-MM-DD"),
-      createdDate: moment(new Date()).format("YYYY-MM-DD"),
-      symptoms: symptoms,
-      priorMedicalHistory: medicalHistory,
-    };
-    const response = await bookAnAppointment(payload);
-    if (response) {
-      setFormValidation(false);
-      toast.success("Booked Appointment Successfully.", {
-        autoClose: 3000,
-        progress: 0.3,
-        hideProgressBar: true,
-        icon: true,
-        theme: "colored",
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      setModal(false);
+    if (!isLoggedIn) {
+      setShowLoginError(true);
+      return;
+    }
+
+    try {
+      const userDetails = isLoggedIn
+        ? JSON.parse(localStorage.getItem("userDetails"))
+        : {};
+      const {
+        id: userId,
+        emailAddress,
+        firstName: userFirstName,
+        lastName: userLastName,
+      } = userDetails;
+      const payload = {
+        doctorId: id,
+        doctorName: `${firstName} ${lastName}`,
+        userId: userId,
+        userName: `${userFirstName} ${userLastName}`,
+        userEmailId: emailAddress,
+        timeSlot: timeSlot,
+        appointmentDate: moment(selectedDate).format(YYYY_MM_DD),
+        createdDate: moment(new Date()).format(YYYY_MM_DD),
+        symptoms: symptoms,
+        priorMedicalHistory: medicalHistory,
+      };
+      const response = await bookAnAppointment(payload);
+      if (response) {
+        setFormValidation(false);
+        showNotification(SUCCESS, "Booked Appointment Successfully!!");
+        setModal(false);
+      }
+    } catch (e) {
+      showNotification(ERROR, "Something went wrong, please try again later");
     }
   };
   return (
     <Fragment>
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          padding: 16,
-          display: "flex",
-          flexDirection: "column",
-          width: "40%",
-          gap: 20,
-        }}
-      >
+      <form onSubmit={handleSubmit} className="bookAppointmentForm">
         <TextField
           name="doctorName"
           aria-readonly
@@ -171,11 +173,16 @@ export default function BookAppointment({ doctor, setModal }) {
           variant="standard"
           onChange={(e) => setSymptoms(e.target.value)}
         />
+        {showLoginError && (
+          <FormHelperText error style={{ fontSize: "14px" }}>
+            Please login before booking an appointment
+          </FormHelperText>
+        )}
         <Button
           variant="contained"
           color="primary"
           type="submit"
-          style={{ flex: 1 }}
+          className="appointmentBtn"
         >
           BOOK APPOINTMENT
         </Button>

@@ -1,6 +1,7 @@
 import { Typography } from "@material-ui/core";
 import { Rating } from "@material-ui/lab";
 import moment from "moment";
+import "./DoctorsList.css";
 
 export default function DoctorDetails({ doctor, setModal }) {
   const {
@@ -17,9 +18,7 @@ export default function DoctorDetails({ doctor, setModal }) {
   } = doctor;
 
   return (
-    <div
-      style={{ display: "flex", flexDirection: "column", padding: 16, gap: 12 }}
-    >
+    <div className="doctorInfo">
       <Typography variant="body1">
         Doctor’s name : {`${firstName} ${lastName} ${highestQualification}`}
       </Typography>
@@ -33,13 +32,7 @@ export default function DoctorDetails({ doctor, setModal }) {
       <Typography variant="body1">City : {address.city}</Typography>
       <Typography variant="body1">Email : {emailId}</Typography>
       <Typography variant="body1">Mobile : {mobile}</Typography>
-      <Typography
-        variant="body1"
-        style={{
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      <Typography variant="body1" className="doctorRating">
         Rating :
         <Rating name="simple-controlled" value={rating} readOnly />
       </Typography>

@@ -4,102 +4,152 @@ import {
   FormHelperText,
   Input,
   InputLabel,
+  Tooltip,
   Typography,
 } from "@material-ui/core";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useRef, useState } from "react";
 import "./login.css";
 import { postLoginRequest } from "../../util/fetch";
-import { toast } from "react-toastify";
 import { url } from "../../util/apiConfig";
-import { EMPTY } from "../../common/constants";
+import { EMPTY, ERROR, SUCCESS } from "../../common/constants";
+import { useForm } from "react-hook-form";
+import { showNotification } from "../../common/notification";
 
 const LoginForm = (props) => {
-  const [email, setEmail] = useState(EMPTY);
-  const [emailError, setEmailError] = useState(EMPTY);
-  const [password, setPassword] = useState(EMPTY);
-  const [passwordError, setPasswordError] = useState(EMPTY);
   const [apiError, setApiError] = useState(EMPTY);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    mode: "onChange",
+    reValidateMode: "onChange",
+  });
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    setEmailError(EMPTY);
-  };
+  const [formSubmitted, setFormSubmitted] = useState({
+    email: false,
+    password: false,
+  });
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-    setPasswordError(EMPTY);
-  };
-
-  const validateFields = () => {
-    let isValid = true;
-
-    if (!email) {
-      setEmailError("Please fill out this field");
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Enter valid Email");
-      isValid = false;
-    }
-    if (!password) {
-      setPasswordError("Please fill out this field");
-      isValid = false;
-    }
-    return isValid;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateFields()) return;
-    const response = await postLoginRequest(url.login, {
-      email,
-      password,
+  const handleFormError = (errors) => {
+    setFormSubmitted({
+      email: true,
+      password: true,
     });
-    const userDetails = await response.json();
-    if (response.ok) {
-      localStorage.setItem("userDetails", JSON.stringify(userDetails));
-      localStorage.setItem("token", JSON.stringify(userDetails.accessToken));
-      toast.success("Logged in successfully!!", {
-        autoClose: 3000,
-        progress: 0.3,
-        hideProgressBar: true,
-        icon: true,
-        theme: "colored",
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      const response = await postLoginRequest(url.login, {
+        email: data.email,
+        password: data.password,
       });
-      props.setOpenModal(false);
-    } else {
-      setApiError(userDetails.message);
+      const userDetails = await response.json();
+      if (response.ok) {
+        localStorage.setItem("userDetails", JSON.stringify(userDetails));
+        localStorage.setItem("token", JSON.stringify(userDetails.accessToken));
+        showNotification(SUCCESS, "Logged in successfully!!");
+        props.setOpenModal(false);
+      } else {
+        setApiError(userDetails.message);
+      }
+    } catch (e) {
+      showNotification(ERROR, "Something went wrong, please try again later");
     }
   };
 
   return (
     <Fragment>
-      <form className="loginForm" onSubmit={handleSubmit}>
-        <FormControl variant="standard">
-          <InputLabel htmlFor="component-simple">Email*</InputLabel>
+      <form
+        onSubmit={handleSubmit(onSubmit, handleFormError)}
+        noValidate
+        className="loginForm"
+      >
+        <FormControl variant="standard" fullWidth margin="normal">
+          <InputLabel htmlFor="email">Email*</InputLabel>
           <Input
-            id="component-simple"
-            value={email}
-            onChange={handleEmailChange}
-            required
+            id="email"
+            inputRef={emailRef}
+            type="text"
+            {...register("email", {
+              required: "Please fill out this field",
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: "Invalid email address",
+              },
+              onChange: () => {
+                setFormSubmitted({
+                  ...formSubmitted,
+                  email: false,
+                });
+              },
+            })}
           />
-          <FormHelperText id="component-error-text" error>
-            {emailError}
-          </FormHelperText>
+          {errors.email?.type === "required" ? (
+            <Tooltip
+              open={true}
+              title={errors.email.message}
+              placement="bottom-left"
+              PopperProps={{
+                disablePortal: true,
+                style: {
+                  zIndex: 1500,
+                },
+                anchorEl: emailRef.current,
+              }}
+            >
+              <span style={{ fontSize: 0 }}></span>
+            </Tooltip>
+          ) : (
+            errors.email?.type === "pattern" &&
+            formSubmitted["email"] && (
+              <FormHelperText error>{errors.email.message}</FormHelperText>
+            )
+          )}
         </FormControl>
-        <FormControl variant="standard">
-          <InputLabel htmlFor="component-simple">Password*</InputLabel>
+        <FormControl variant="standard" fullWidth margin="normal">
+          <InputLabel htmlFor="password">Password*</InputLabel>
           <Input
-            id="component-simple"
+            id="password"
+            inputRef={passwordRef}
             type="password"
-            value={password}
-            onChange={handlePasswordChange}
+            {...register("password", {
+              required: "Please fill out this field",
+              minLength: {
+                value: 8,
+                message: "Password must be at least 8 characters",
+              },
+              onChange: () => {
+                setFormSubmitted({
+                  ...formSubmitted,
+                  password: false,
+                });
+              },
+            })}
           />
-          <FormHelperText id="component-error-text" error>
-            {passwordError}
-          </FormHelperText>
+          {errors.password?.type === "required" ? (
+            <Tooltip
+              open={true}
+              title={errors.password.message}
+              placement="bottom"
+              PopperProps={{
+                disablePortal: true,
+                style: {
+                  zIndex: 1500,
+                },
+                anchorEl: passwordRef.current,
+              }}
+            >
+              <span style={{ fontSize: 0 }}></span>
+            </Tooltip>
+          ) : (
+            errors.password?.type === "minLength" &&
+            formSubmitted["password"] && (
+              <FormHelperText error>{errors.password.message}</FormHelperText>
+            )
+          )}
         </FormControl>
         <Typography variant="body1" color="error">
           {apiError}

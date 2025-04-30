@@ -7,10 +7,12 @@ import {
 import { Rating } from "@material-ui/lab";
 import { Fragment, useState } from "react";
 import { postRequest } from "../../util/fetch";
-import { toast } from "react-toastify";
+import { url } from "../../util/apiConfig";
+import { EMPTY, ERROR, SUCCESS } from "../../common/constants";
+import { showNotification } from "../../common/notification";
 
 export default function RateAppointment({ appointmentDetails, setOpenModal }) {
-  const [comments, setComments] = useState("");
+  const [comments, setComments] = useState(EMPTY);
   const [rating, setRating] = useState();
   const [ratingError, setRatingError] = useState(false);
   const { appointmentId, doctorId } = appointmentDetails;
@@ -27,39 +29,22 @@ export default function RateAppointment({ appointmentDetails, setOpenModal }) {
       rating: rating,
       comments: comments,
     };
-    const response = await postRequest(
-      "http://localhost:8080/ratings",
-      payload
-    );
-    if (response.ok) {
-      const data = await response.text();
-      if (data === "success") {
-        toast.success("Rating submitted Successful", {
-          autoClose: 3000,
-          progress: 0.3,
-          hideProgressBar: true,
-          icon: true,
-          theme: "colored",
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+    try {
+      const response = await postRequest(url.rating, payload);
+      if (response.ok) {
+        const data = await response.text();
+        if (data === SUCCESS) {
+          showNotification(SUCCESS, "Rating submitted Successful!!");
+        }
+        setOpenModal(false);
       }
-      setOpenModal(false);
+    } catch (e) {
+      showNotification(ERROR, "Something went wrong, please try again later");
     }
   };
   return (
     <Fragment>
-      <form
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          width: "40%",
-          padding: 16,
-        }}
-        onSubmit={handleOnSubmit}
-      >
+      <form className="form" onSubmit={handleOnSubmit}>
         <TextField
           label="Comments"
           multiline
@@ -68,13 +53,7 @@ export default function RateAppointment({ appointmentDetails, setOpenModal }) {
           variant="standard"
           onChange={(e) => setComments(e.target.value)}
         />
-        <Typography
-          variant="body1"
-          style={{
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
+        <Typography variant="body1" className="ratingText">
           Rating:
           <Rating
             name="simple-controlled"

@@ -8,9 +8,9 @@ import { Close } from "@material-ui/icons";
 import { useLogin } from "../../screens/login/useLogin";
 import Register from "../../screens/register/Register";
 import { postRequest } from "../../util/fetch";
-import { toast } from "react-toastify";
 import { url } from "../../util/apiConfig";
-import { SUCCESS } from "../constants";
+import { ERROR, SUCCESS } from "../constants";
+import { showNotification } from "../notification";
 
 const Header = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -59,25 +59,20 @@ const Header = () => {
   }
 
   async function handleLogOut() {
-    const response = await postRequest(url.logout);
-    if (response.ok) {
-      const resData = await response.text();
-      if (resData === SUCCESS) {
-        localStorage.clear();
-        toast.success("Logged out successfully!!", {
-          autoClose: 3000,
-          progress: 0.3,
-          hideProgressBar: true,
-          icon: true,
-          theme: "colored",
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
+    try {
+      const response = await postRequest(url.logout);
+      if (response.ok) {
+        const resData = await response.text();
+        if (resData === SUCCESS) {
+          localStorage.clear();
+          showNotification(SUCCESS, "Logged out successfully!!");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
       }
+    } catch (e) {
+      showNotification(ERROR, "Something went wrong, please try again later");
     }
   }
   return (
@@ -86,23 +81,21 @@ const Header = () => {
         <img src={doctorLogo} alt="doctor_logo" className="doctorLogo" />
         <h2 className="headerName">Doctor Finder</h2>
       </div>
-      <div>
-        {!isLoggedIn && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setOpenModal(true)}
-            className="loginBtn"
-          >
-            Login
-          </Button>
-        )}
-        {isLoggedIn && (
-          <Button variant="contained" color="secondary" onClick={handleLogOut}>
-            Logout
-          </Button>
-        )}
-      </div>
+      {!isLoggedIn && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenModal(true)}
+          className="loginBtn"
+        >
+          Login
+        </Button>
+      )}
+      {isLoggedIn && (
+        <Button variant="contained" color="secondary" onClick={handleLogOut}>
+          Logout
+        </Button>
+      )}
       <Modal isOpen={openModal} style={customStyles} contentLabel="Modal">
         <div className="loginModalHeader">
           Authentication

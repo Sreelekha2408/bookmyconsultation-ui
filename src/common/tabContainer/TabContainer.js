@@ -1,10 +1,11 @@
 import React from "react";
 import Typography from "@material-ui/core/Typography";
 import PropTypes from "prop-types";
+import "./TabContainer.css";
 
 const TabContainer = function (props) {
   return (
-    <Typography component="div" style={{ padding: 0, textAlign: "center" }}>
+    <Typography component="div" className="tabStyle">
       {props.children}
     </Typography>
   );

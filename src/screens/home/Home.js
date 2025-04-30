@@ -3,6 +3,7 @@ import Header from "../../common/header/Header";
 import { Box, Tab, Tabs } from "@material-ui/core";
 import DoctorList from "../doctorList/DoctorList";
 import Appointments from "../appointment/Appointment";
+import "./Home.css";
 
 const Home = () => {
   const [value, setValue] = React.useState(0);
@@ -21,7 +22,7 @@ const Home = () => {
         aria-labelledby={`simple-tab-${index}`}
         {...other}
       >
-        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        {value === index && <Box className="tabChildren">{children}</Box>}
       </div>
     );
   }

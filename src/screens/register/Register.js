@@ -10,8 +10,9 @@ import {
 import { useForm } from "react-hook-form";
 import "./register.css";
 import { postLoginRequest, registerUser } from "../../util/fetch";
-import { toast } from "react-toastify";
 import { url } from "../../util/apiConfig";
+import { ERROR, SUCCESS } from "../../common/constants";
+import { showNotification } from "../../common/notification";
 
 export default function Register(props) {
   const {
@@ -44,8 +45,14 @@ export default function Register(props) {
   };
 
   const onSubmit = async (data) => {
-    const response = await registerUser(url.register, data);
-    if (response.ok) {
+    try {
+      const response = await registerUser(url.register, data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        showNotification(ERROR, errorData.message);
+        return;
+      }
+
       const response1 = await postLoginRequest(url.login, {
         email: data.emailId,
         password: data.password,
@@ -54,18 +61,11 @@ export default function Register(props) {
         const userDetails = await response1.json();
         localStorage.setItem("userDetails", JSON.stringify(userDetails));
         localStorage.setItem("token", JSON.stringify(userDetails.accessToken));
-        toast.success("Registration Successful", {
-          autoClose: 3000,
-          progress: 0.3,
-          hideProgressBar: true,
-          icon: true,
-          theme: "colored",
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        showNotification(SUCCESS, "Registration Successful!!");
         props.setOpenModal(false);
       }
+    } catch (e) {
+      showNotification(ERROR, "Something went wrong, please try again later");
     }
   };
 

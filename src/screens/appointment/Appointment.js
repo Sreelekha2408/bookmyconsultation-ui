@@ -5,6 +5,9 @@ import { getRequest } from "../../util/fetch";
 import moment from "moment";
 import RateAppointment from "./RateAppointment";
 import { url } from "../../util/apiConfig";
+import "./Appointment.css";
+import { showNotification } from "../../common/notification";
+import { ERROR } from "../../common/constants";
 
 export default function Appointments() {
   const isLoggedIn = useLogin();
@@ -15,11 +18,15 @@ export default function Appointments() {
 
   useEffect(() => {
     async function getAppointments(id) {
-      const response = await getRequest(
-        `${url.userAppointments}/${id}/appointments`
-      );
-      const data = await response.json();
-      setAppointments(data);
+      try {
+        const response = await getRequest(
+          `${url.userAppointments}/${id}/appointments`
+        );
+        const data = await response.json();
+        setAppointments(data);
+      } catch (e) {
+        showNotification(ERROR, "Something went wrong, please try again later");
+      }
     }
 
     if (isLoggedIn) {
@@ -28,58 +35,26 @@ export default function Appointments() {
     }
   }, [isLoggedIn]);
 
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "40%",
-    bgcolor: "background.paper",
-    boxShadow: "2px 2px 2px 1px rgb(0 0 0 / 20%)",
-    borderRadius: "5px",
-  };
   return (
     <Fragment>
       {!isLoggedIn ? (
-        <Typography
-          variant="h6"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+        <Typography variant="h6" className="appointmentHeaderText">
           Login to see appointments
         </Typography>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "24px",
-            marginTop: "24px",
-            alignItems: "center",
-            padding: 24,
-          }}
-        >
+        <div className="appointmentsContainer">
           {appointments.map((appointment) => {
             return (
               <Paper
                 elevation={2}
-                style={{
-                  height: "auto",
-                  width: "100%",
-                  padding: 16,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
+                className="appointmentCard"
                 key={appointment.id}
               >
                 <Typography variant="h6">
                   Doctor Name : {appointment.doctorName}
                 </Typography>
                 <Typography variant="body1">
-                  Date :{" "}
+                  Date :
                   {moment(appointment.appointmentDate).format("DD/MM/YYYY")}
                 </Typography>
                 <Typography variant="body1">
@@ -88,17 +63,11 @@ export default function Appointments() {
                 <Typography variant="body1">
                   Prior Medical History : {appointment.priorMedicalHistory}
                 </Typography>
-                <div
-                  style={{
-                    marginTop: "20px",
-                    gap: "20px",
-                    width: "100%",
-                  }}
-                >
+                <div className="btnContainer">
                   <Button
                     variant="contained"
                     color="primary"
-                    style={{ flex: 1 }}
+                    className="appointmentBtn"
                     onClick={() => {
                       setAppointmentDetails(appointment);
                       setOpenModal(true);
@@ -118,20 +87,8 @@ export default function Appointments() {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style}>
-          <Typography
-            variant="h5"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "purple",
-              color: "ghostwhite",
-              height: "38px",
-              borderTopLeftRadius: "5px",
-              borderTopRightRadius: "5px",
-              padding: 16,
-            }}
-          >
+        <Box className="modalBody">
+          <Typography variant="h5" className="modalText">
             Rate an Appointment
           </Typography>
           <RateAppointment
